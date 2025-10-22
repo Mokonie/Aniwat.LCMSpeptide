@@ -447,12 +447,12 @@ with tab3:
                                 })
                     
                     # Filter high confidence
-                    high_conf = [p for p in peptides if p.get('confidence', 0) > 80]
+                    high_conf = [p for p in peptides if p.get('confidence', 0) >= 60]
                     
                     st.success(f"""
                     ✅ File analyzed successfully!
                     - **Total peptides:** {len(peptides)}
-                    - **High confidence (>80%):** {len(high_conf)}
+                    - **High confidence (≥60%):** {len(high_conf)}
                     """)
                     
                     if high_conf:
@@ -484,7 +484,7 @@ with tab3:
                             mime="text/csv"
                         )
                     else:
-                        st.warning("No high-confidence peptides found (confidence > 80%)")
+                        st.warning("No high-confidence peptides found (confidence ≥ 60%)")
                 
                 except Exception as e:
                     st.error(f"Error analyzing file: {str(e)}")
