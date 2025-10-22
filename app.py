@@ -59,6 +59,23 @@ st.markdown("""
         border-radius: 0.5rem;
         margin: 1rem 0;
     }
+    .footnote {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-top: 1rem;
+        padding: 0.75rem;
+        background-color: #f9fafb;
+        border-left: 3px solid #9ca3af;
+        border-radius: 0.25rem;
+    }
+    /* Center align table cells */
+    .dataframe td, .dataframe th {
+        text-align: center !important;
+        font-size: 1.25rem !important;
+    }
+    .dataframe th {
+        font-weight: bold !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -386,6 +403,20 @@ with tab2:
                 
                 st.dataframe(df_sorted.drop('Umami_Conf_Val', axis=1), use_container_width=True)
                 
+                # Footnote
+                st.markdown("""
+                <div class="footnote">
+                    <strong>📝 คำอธิบายค่า Confidence:</strong><br>
+                    • <strong>Umami Confidence:</strong> ความมั่นใจของโมเดล Machine Learning ในการทำนายว่าเปปไทด์มีรส Umami (0-100%)<br>
+                    • <strong>Bitter Confidence:</strong> ความมั่นใจของโมเดล Machine Learning ในการทำนายว่าเปปไทด์มีรส Bitter (0-100%)<br>
+                    <br>
+                    <strong>การแปลผล:</strong><br>
+                    &nbsp;&nbsp;- ≥70% = มีความมั่นใจสูง (แนะนำให้พิจารณาเปปไทด์นี้)<br>
+                    &nbsp;&nbsp;- 50-70% = มีความมั่นใจปานกลาง<br>
+                    &nbsp;&nbsp;- <50% = มีความมั่นใจต่ำ
+                </div>
+                """, unsafe_allow_html=True)
+                
                 # Download button
                 csv = df.to_csv(index=False)
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -473,6 +504,21 @@ with tab3:
                         
                         df_results = pd.DataFrame(results_list)
                         st.dataframe(df_results, use_container_width=True)
+                        
+                        # Footnote
+                        st.markdown("""
+                        <div class="footnote">
+                            <strong>📝 คำอธิบายค่า Confidence:</strong><br>
+                            • <strong>Confidence:</strong> คะแนนความเชื่อมั่นจากเครื่อง LC-MS/MS (Denovo score หรือ ALC) - แสดงความถูกต้องของการวิเคราะห์ลำดับเปปไทด์<br>
+                            • <strong>Umami Conf:</strong> ความมั่นใจของโมเดล Machine Learning ในการทำนายว่าเปปไทด์มีรส Umami (0-100%)<br>
+                            • <strong>Bitter Conf:</strong> ความมั่นใจของโมเดล Machine Learning ในการทำนายว่าเปปไทด์มีรส Bitter (0-100%)<br>
+                            <br>
+                            <strong>การแปลผล (Umami Conf / Bitter Conf):</strong><br>
+                            &nbsp;&nbsp;- ≥70% = มีความมั่นใจสูง (แนะนำให้พิจารณาเปปไทด์นี้)<br>
+                            &nbsp;&nbsp;- 50-70% = มีความมั่นใจปานกลาง<br>
+                            &nbsp;&nbsp;- <50% = มีความมั่นใจต่ำ
+                        </div>
+                        """, unsafe_allow_html=True)
                         
                         # Download
                         csv = df_results.to_csv(index=False)
