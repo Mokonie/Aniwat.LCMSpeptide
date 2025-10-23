@@ -967,6 +967,196 @@ with tab4:
                     comparison_df = pd.DataFrame(known_peptides)
                     st.dataframe(comparison_df, use_container_width=True, hide_index=True)
                     
+                    # Molecular Visualization Section
+                    st.markdown("### 🎨 Molecular Visualization")
+                    st.markdown("สร้างภาพโมเลกุล 2D และ 3D เพื่อแสดงโครงสร้างและ interactions")
+                    
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        if st.button("🖼️ สร้างภาพ 2D Structure", use_container_width=True):
+                            with st.spinner("กำลังสร้างภาพ 2D..."):
+                                try:
+                                    import matplotlib.pyplot as plt
+                                    import matplotlib.patches as mpatches
+                                    from matplotlib.patches import Circle
+                                    import tempfile
+                                    import os
+                                    
+                                    # Generate 2D structure
+                                    from generate_peptide_structures import generate_2d_structure
+                                    
+                                    with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as tmp:
+                                        generate_2d_structure(sequence, tmp.name)
+                                        st.image(tmp.name, caption=f"2D Structure of {sequence}")
+                                        
+                                        # Provide download button
+                                        with open(tmp.name, 'rb') as f:
+                                            st.download_button(
+                                                label="📥 Download 2D Structure",
+                                                data=f.read(),
+                                                file_name=f"{sequence}_2d_structure.png",
+                                                mime="image/png"
+                                            )
+                                        os.unlink(tmp.name)
+                                    
+                                    st.success("✅ สร้างภาพ 2D เสร็จสมบูรณ์!")
+                                except Exception as e:
+                                    st.error(f"เกิดข้อผิดพลาด: {str(e)}")
+                    
+                    with col2:
+                        if st.button("🔵 สร้างภาพ Interactions", use_container_width=True):
+                            with st.spinner("กำลังสร้างภาพ Interactions..."):
+                                try:
+                                    from generate_peptide_structures import generate_interaction_diagram
+                                    import tempfile
+                                    import os
+                                    
+                                    # T1R1 key residues
+                                    t1r1_residues = {
+                                        'Y220': {'type': 'H-bond'},
+                                        'E301': {'type': 'Electrostatic'},
+                                        'L305': {'type': 'Hydrophobic'},
+                                        'S306': {'type': 'H-bond'},
+                                        'S385': {'type': 'H-bond'},
+                                        'N388': {'type': 'H-bond'},
+                                        'D147': {'type': 'Electrostatic'},
+                                        'Y169': {'type': 'H-bond'},
+                                        'L75': {'type': 'Hydrophobic'},
+                                        'A302': {'type': 'H-bond'},
+                                    }
+                                    
+                                    # T1R3 key residues
+                                    t1r3_residues = {
+                                        "S146'": {'type': 'H-bond'},
+                                        "S147'": {'type': 'H-bond'},
+                                        "E148'": {'type': 'Electrostatic'},
+                                        "T167'": {'type': 'H-bond/Hydrophobic'},
+                                        "G168'": {'type': 'Flexibility'},
+                                        "S170'": {'type': 'H-bond'},
+                                        "M171'": {'type': 'Hydrophobic'},
+                                        "D190'": {'type': 'Electrostatic'},
+                                        "N386'": {'type': 'H-bond'},
+                                        "Q389'": {'type': 'H-bond'},
+                                        "W72'": {'type': 'Hydrophobic'},
+                                        "H145'": {'type': 'H-bond'},
+                                    }
+                                    
+                                    # Generate T1R1 interaction diagram
+                                    with tempfile.NamedTemporaryFile(delete=False, suffix='_t1r1.png') as tmp1:
+                                        generate_interaction_diagram(sequence, "T1R1", t1r1_residues, tmp1.name)
+                                        st.image(tmp1.name, caption=f"T1R1 Pocket Interactions - {sequence}")
+                                        
+                                        with open(tmp1.name, 'rb') as f:
+                                            st.download_button(
+                                                label="📥 Download T1R1 Interactions",
+                                                data=f.read(),
+                                                file_name=f"{sequence}_t1r1_interactions.png",
+                                                mime="image/png",
+                                                key="download_t1r1"
+                                            )
+                                        os.unlink(tmp1.name)
+                                    
+                                    # Generate T1R3 interaction diagram
+                                    with tempfile.NamedTemporaryFile(delete=False, suffix='_t1r3.png') as tmp2:
+                                        generate_interaction_diagram(sequence, "T1R3", t1r3_residues, tmp2.name)
+                                        st.image(tmp2.name, caption=f"T1R3 Pocket Interactions - {sequence}")
+                                        
+                                        with open(tmp2.name, 'rb') as f:
+                                            st.download_button(
+                                                label="📥 Download T1R3 Interactions",
+                                                data=f.read(),
+                                                file_name=f"{sequence}_t1r3_interactions.png",
+                                                mime="image/png",
+                                                key="download_t1r3"
+                                            )
+                                        os.unlink(tmp2.name)
+                                    
+                                    st.success("✅ สร้างภาพ Interactions เสร็จสมบูรณ์!")
+                                except Exception as e:
+                                    st.error(f"เกิดข้อผิดพลาด: {str(e)}")
+                    
+                    with col3:
+                        if st.button("🌐 สร้างภาพ 3D Pocket", use_container_width=True):
+                            with st.spinner("กำลังสร้างภาพ 3D..."):
+                                try:
+                                    from generate_3d_pocket_visualization import generate_3d_pocket_visualization, generate_pocket_cross_section
+                                    import tempfile
+                                    import os
+                                    
+                                    # T1R1 and T1R3 key residues (same as above)
+                                    t1r1_residues = {
+                                        'Y220': {'type': 'H-bond'},
+                                        'E301': {'type': 'Electrostatic'},
+                                        'L305': {'type': 'Hydrophobic'},
+                                        'S306': {'type': 'H-bond'},
+                                        'S385': {'type': 'H-bond'},
+                                        'N388': {'type': 'H-bond'},
+                                        'D147': {'type': 'Electrostatic'},
+                                        'Y169': {'type': 'H-bond'},
+                                        'L75': {'type': 'Hydrophobic'},
+                                        'A302': {'type': 'H-bond'},
+                                    }
+                                    
+                                    t1r3_residues = {
+                                        "S146'": {'type': 'H-bond'},
+                                        "S147'": {'type': 'H-bond'},
+                                        "E148'": {'type': 'Electrostatic'},
+                                        "T167'": {'type': 'H-bond/Hydrophobic'},
+                                        "G168'": {'type': 'Flexibility'},
+                                        "S170'": {'type': 'H-bond'},
+                                        "M171'": {'type': 'Hydrophobic'},
+                                        "D190'": {'type': 'Electrostatic'},
+                                        "N386'": {'type': 'H-bond'},
+                                        "Q389'": {'type': 'H-bond'},
+                                        "W72'": {'type': 'Hydrophobic'},
+                                        "H145'": {'type': 'H-bond'},
+                                    }
+                                    
+                                    # Generate 3D visualizations
+                                    with tempfile.NamedTemporaryFile(delete=False, suffix='_t1r1_3d.png') as tmp1:
+                                        generate_3d_pocket_visualization(sequence, "T1R1", t1r1_residues, tmp1.name)
+                                        st.image(tmp1.name, caption=f"T1R1 Pocket 3D - {sequence}")
+                                        
+                                        with open(tmp1.name, 'rb') as f:
+                                            st.download_button(
+                                                label="📥 Download T1R1 3D",
+                                                data=f.read(),
+                                                file_name=f"{sequence}_t1r1_3d.png",
+                                                mime="image/png",
+                                                key="download_t1r1_3d"
+                                            )
+                                        os.unlink(tmp1.name)
+                                    
+                                    with tempfile.NamedTemporaryFile(delete=False, suffix='_t1r3_3d.png') as tmp2:
+                                        generate_3d_pocket_visualization(sequence, "T1R3", t1r3_residues, tmp2.name)
+                                        st.image(tmp2.name, caption=f"T1R3 Pocket 3D - {sequence}")
+                                        
+                                        with open(tmp2.name, 'rb') as f:
+                                            st.download_button(
+                                                label="📥 Download T1R3 3D",
+                                                data=f.read(),
+                                                file_name=f"{sequence}_t1r3_3d.png",
+                                                mime="image/png",
+                                                key="download_t1r3_3d"
+                                            )
+                                        os.unlink(tmp2)
+                                    
+                                    # Generate cross-sections
+                                    with tempfile.NamedTemporaryFile(delete=False, suffix='_t1r1_cross.png') as tmp3:
+                                        generate_pocket_cross_section(sequence, "T1R1", tmp3.name)
+                                        st.image(tmp3.name, caption=f"T1R1 Cross-Section - {sequence}")
+                                        os.unlink(tmp3.name)
+                                    
+                                    with tempfile.NamedTemporaryFile(delete=False, suffix='_t1r3_cross.png') as tmp4:
+                                        generate_pocket_cross_section(sequence, "T1R3", tmp4.name)
+                                        st.image(tmp4.name, caption=f"T1R3 Cross-Section - {sequence}")
+                                        os.unlink(tmp4.name)
+                                    
+                                    st.success("✅ สร้างภาพ 3D เสร็จสมบูรณ์!")
+                                except Exception as e:
+                                    st.error(f"เกิดข้อผิดพลาด: {str(e)}")
+                    
                     # Footnote
                     st.markdown("""
                     <div class="footnote">
