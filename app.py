@@ -814,6 +814,7 @@ with tab3:
                     st.error(f"Error analyzing file: {str(e)}")
 
 # Tab 4: Molecular Docking Prediction
+# Tab 4: Molecular Docking Prediction
 with tab4:
     st.subheader("🧬 Molecular Docking Prediction")
     st.write("ทำนายการเกิด interaction ของ peptide กับ key residues ใน T1R1/T1R3 receptor pockets")
@@ -865,6 +866,201 @@ with tab4:
                     with col1:
                         st.metric("ความยาว", f"{props['length']} aa")
                         st.metric("Net Charge (pH 7)", f"{props['net_charge']:.2f}")
+                    with col2:
+                        st.metric("Molecular Weight", f"{props['mw']:.1f} Da")
+                        st.metric("Isoelectric Point", f"{props['pi']:.2f}")
+                    with col3:
+                        st.metric("Hydrophobicity (GRAVY)", f"{props['gravy']:.3f}")
+                        st.metric("กรดอะมิโน (D/E)", f"{props['acidic_pct']:.1f}%")
+                    
+                    # Display T1R1 interactions
+                    st.markdown("### 🔵 T1R1 Pocket Interactions")
+                    
+                    col1, col2 = st.columns([1, 1])
+                    with col1:
+                        st.markdown(f"""
+                        <div class="prediction-box umami-box">
+                            <h4>🎯 Binding Score</h4>
+                            <h2 style="color: #f59e0b;">{t1r1_result['score']:.1f}/100</h2>
+                            <p><strong>Estimated Binding Energy:</strong> {t1r1_result['binding_energy']:.2f} kcal/mol</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with col2:
+                        st.markdown(f"""
+                        <div class="prediction-box" style="background-color: #f0f9ff; border-left: 4px solid #3b82f6;">
+                            <h4>🔗 Predicted Interactions</h4>
+                            <p><strong>Hydrogen Bonds:</strong> {t1r1_result['h_bonds']}</p>
+                            <p><strong>Electrostatic:</strong> {t1r1_result['electrostatic']}</p>
+                            <p><strong>Hydrophobic:</strong> {t1r1_result['hydrophobic']}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    # Show key residue interactions for T1R1
+                    st.markdown("**Key Residues ที่คาดว่าจะเกิด Interaction:**")
+                    interactions_df = pd.DataFrame(t1r1_result['residue_interactions'])
+                    st.dataframe(interactions_df, use_container_width=True, hide_index=True)
+                    
+                    # Display T1R3 interactions
+                    st.markdown("### 🟢 T1R3 Pocket Interactions")
+                    
+                    col1, col2 = st.columns([1, 1])
+                    with col1:
+                        st.markdown(f"""
+                        <div class="prediction-box bitter-box">
+                            <h4>🎯 Binding Score</h4>
+                            <h2 style="color: #3b82f6;">{t1r3_result['score']:.1f}/100</h2>
+                            <p><strong>Estimated Binding Energy:</strong> {t1r3_result['binding_energy']:.2f} kcal/mol</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    with col2:
+                        st.markdown(f"""
+                        <div class="prediction-box" style="background-color: #f0fdf4; border-left: 4px solid #10b981;">
+                            <h4>🔗 Predicted Interactions</h4>
+                            <p><strong>Hydrogen Bonds:</strong> {t1r3_result['h_bonds']}</p>
+                            <p><strong>Electrostatic:</strong> {t1r3_result['electrostatic']}</p>
+                            <p><strong>Hydrophobic:</strong> {t1r3_result['hydrophobic']}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    # Show key residue interactions for T1R3
+                    st.markdown("**Key Residues ที่คาดว่าจะเกิด Interaction:**")
+                    interactions_df = pd.DataFrame(t1r3_result['residue_interactions'])
+                    st.dataframe(interactions_df, use_container_width=True, hide_index=True)
+                    
+                    # Overall assessment
+                    st.markdown("### 🎖️ สรุปศักยภาพ Umami")
+                    
+                    # Determine color based on potential
+                    if umami_assessment['level'] == 'สูง':
+                        box_color = '#fef3c7'
+                        border_color = '#f59e0b'
+                        emoji = '🌟'
+                    elif umami_assessment['level'] == 'ปานกลาง':
+                        box_color = '#dbeafe'
+                        border_color = '#3b82f6'
+                        emoji = '⭐'
+                    elif umami_assessment['level'] == 'ต่ำ':
+                        box_color = '#f3f4f6'
+                        border_color = '#9ca3af'
+                        emoji = '🔸'
+                    else:
+                        box_color = '#fee2e2'
+                        border_color = '#ef4444'
+                        emoji = '❌'
+                    
+                    st.markdown(f"""
+                    <div class="prediction-box" style="background-color: {box_color}; border-left: 4px solid {border_color};">
+                        <h3>{emoji} ศักยภาพ Umami: {umami_assessment['level']}</h3>
+                        <p><strong>Overall Score:</strong> {umami_assessment['overall_score']:.1f}/100</p>
+                        <p><strong>Preferred Pocket:</strong> {umami_assessment['preferred_pocket']}</p>
+                        <p><strong>คำแนะนำ:</strong> {umami_assessment['recommendation']}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Comparison with known umami peptides
+                    st.markdown("### 🔍 เปรียบเทียบกับ Umami Peptides ที่รู้จัก")
+                    
+                    known_peptides = [
+                        {'Peptide': 'DG (Asp-Gly)', 'T1R1 BE': -8.1, 'T1R3 BE': -7.3, 'Preference': 'T1R1'},
+                        {'Peptide': 'EK (Glu-Lys)', 'T1R1 BE': -7.1, 'T1R3 BE': -8.3, 'Preference': 'T1R3'},
+                        {'Peptide': 'EE (Glu-Glu)', 'T1R1 BE': -7.5, 'T1R3 BE': -7.8, 'Preference': 'T1R3'},
+                        {'Peptide': 'DD (Asp-Asp)', 'T1R1 BE': -7.6, 'T1R3 BE': -7.2, 'Preference': 'T1R1'},
+                        {'Peptide': f'{sequence} (ของคุณ)', 'T1R1 BE': t1r1_result['binding_energy'], 
+                         'T1R3 BE': t1r3_result['binding_energy'], 
+                         'Preference': umami_assessment['preferred_pocket']}
+                    ]
+                    
+                    comparison_df = pd.DataFrame(known_peptides)
+                    st.dataframe(comparison_df, use_container_width=True, hide_index=True)
+                    
+                    # Molecular Visualization Section
+                    st.markdown("### 🎨 Molecular Visualization")
+                    st.markdown("สร้างภาพโมเลกุล 2D และ 3D เพื่อแสดงโครงสร้างและ interactions")
+                    
+                    col1, col2, col3 = st.columns(3)
+                    
+                    with col1:
+                        if st.button("🖼️ สร้างภาพ 2D Structure", use_container_width=True, key="btn_2d"):
+                            with st.spinner("กำลังสร้างภาพ 2D..."):
+                                try:
+                                    # Amino acid colors
+                                    aa_colors = {
+                                        'E': '#FF6B6B', 'D': '#FF6B6B',  # Acidic - red
+                                        'K': '#4ECDC4', 'R': '#4ECDC4', 'H': '#95E1D3',  # Basic - blue/cyan
+                                        'S': '#FFA07A', 'T': '#FFA07A', 'N': '#FFA07A', 'Q': '#FFA07A',  # Polar - orange
+                                        'G': '#E0E0E0', 'P': '#E0E0E0',  # Special - gray
+                                        'A': '#B8B8B8', 'V': '#B8B8B8', 'L': '#B8B8B8', 'I': '#B8B8B8', 'M': '#B8B8B8',  # Hydrophobic - dark gray
+                                        'F': '#FFD93D', 'Y': '#FFD93D', 'W': '#FFD93D',  # Aromatic - yellow
+                                        'C': '#F9ED69'  # Cysteine - light yellow
+                                    }
+                                    
+                                    # Create figure
+                                    fig, ax = plt.subplots(figsize=(max(len(sequence) * 2, 10), 6))
+                                    ax.set_xlim(-1, len(sequence))
+                                    ax.set_ylim(-2, 2)
+                                    ax.axis('off')
+                                    
+                                    # Draw amino acids
+                                    for i, aa in enumerate(sequence):
+                                        color = aa_colors.get(aa, '#CCCCCC')
+                                        circle = Circle((i, 0), 0.4, color=color, ec='black', linewidth=2, zorder=5)
+                                        ax.add_patch(circle)
+                                        ax.text(i, 0, aa, ha='center', va='center', fontsize=14, fontweight='bold', zorder=6)
+                                        
+                                        # Add charge indicators
+                                        if aa in ['D', 'E']:
+                                            ax.text(i, -0.7, '(−)', ha='center', va='center', fontsize=10, color='red')
+                                        elif aa in ['K', 'R']:
+                                            ax.text(i, -0.7, '(+)', ha='center', va='center', fontsize=10, color='blue')
+                                        
+                                        # Connect amino acids
+                                        if i < len(sequence) - 1:
+                                            ax.plot([i + 0.4, i + 0.6], [0, 0], 'k-', linewidth=2, zorder=1)
+                                    
+                                    # Add labels
+                                    ax.text(-0.5, 0, 'N', ha='center', va='center', fontsize=12, style='italic', color='blue')
+                                    ax.text(len(sequence) - 0.5, 0, 'C', ha='center', va='center', fontsize=12, style='italic', color='red')
+                                    ax.text(len(sequence) / 2 - 0.5, 1.5, f'Peptide: {sequence}', ha='center', va='center', 
+                                           fontsize=16, fontweight='bold')
+                                    
+                                    # Add legend
+                                    legend_elements = [
+                                        mpatches.Patch(color='#FF6B6B', label='Acidic (D, E)'),
+                                        mpatches.Patch(color='#4ECDC4', label='Basic (K, R, H)'),
+                                        mpatches.Patch(color='#FFA07A', label='Polar (S, T, N, Q)'),
+                                        mpatches.Patch(color='#FFD93D', label='Aromatic (F, Y, W)'),
+                                        mpatches.Patch(color='#E0E0E0', label='Special (G, P)'),
+                                        mpatches.Patch(color='#B8B8B8', label='Hydrophobic (A, V, L, I, M)')
+                                    ]
+                                    ax.legend(handles=legend_elements, loc='lower center', ncol=3, fontsize=9, 
+                                             frameon=True, fancybox=True, shadow=True, bbox_to_anchor=(0.5, -0.3))
+                                    
+                                    plt.tight_layout()
+                                    
+                                    # Save and display
+                                    with tempfile.NamedTemporaryFile(delete=False, suffix='_2d.png') as tmp:
+                                        plt.savefig(tmp.name, dpi=300, bbox_inches='tight')
+                                        plt.close()
+                                        st.image(tmp.name, caption=f"2D Structure - {sequence}")
+                                        
+                                        with open(tmp.name, 'rb') as f:
+                                            st.download_button(
+                                                label="📥 Download 2D Structure",
+                                                data=f.read(),
+                                                file_name=f"{sequence}_2d_structure.png",
+                                                mime="image/png",
+                                                key="download_2d"
+                                            )
+                                        os.unlink(tmp.name)
+                                    
+                                    st.success("✅ สร้างภาพ 2D เสร็จสมบูรณ์!")
+                                except Exception as e:
+                                    st.error(f"เกิดข้อผิดพลาด: {str(e)}")
+                                    import traceback
+                                    st.code(traceback.format_exc())
+                    
                     with col2:
                         if st.button("🔵 สร้างภาพ Interactions", use_container_width=True, key="btn_interact"):
                             with st.spinner("กำลังสร้างภาพ Interactions..."):
@@ -984,8 +1180,7 @@ with tab4:
                                     st.error(f"เกิดข้อผิดพลาด: {str(e)}")
                                     import traceback
                                     st.code(traceback.format_exc())
-
-
+                    
                     with col3:
                         if st.button("🌐 สร้างภาพ 3D Pocket", use_container_width=True, key="btn_3d"):
                             with st.spinner("กำลังสร้างภาพ 3D..."):
@@ -1171,13 +1366,14 @@ with tab4:
                                     st.error(f"เกิดข้อผิดพลาด: {str(e)}")
                                     import traceback
                                     st.code(traceback.format_exc())
-
-
+                    
                     # Footnote
+                    st.markdown("---")
                     st.markdown("""
-                    <div class="footnote">
-                        <strong>📝 หมายเหตุ:</strong><br>
-                        • <strong>Binding Energy (BE):</strong> พลังงานการจับที่ประมาณการ (ยิ่งต่ำ = จับแรงขึ้น)<br>
+                    <div class="info-box" style="background-color: #f0f9ff; border-left: 4px solid #3b82f6;">
+                        <strong>📚 คำอธิบาย:</strong><br>
+                        • <strong>Binding Score:</strong> คะแนนการจับ (0-100) ยิ่งสูงยิ่งดี<br>
+                        • <strong>Binding Energy:</strong> พลังงานการจับ (kcal/mol) ยิ่งติดลบมากยิ่งจับแรง<br>
                         • <strong>Key Residues:</strong> กรดอะมิโนสำคัญใน receptor pocket ที่เกี่ยวข้องกับการจับ peptide<br>
                         • <strong>Interaction Types:</strong><br>
                         &nbsp;&nbsp;- H-bond: พันธะไฮโดรเจน (สำคัญที่สุด)<br>
@@ -1186,6 +1382,7 @@ with tab4:
                         • ข้อมูลอ้างอิงจาก: Hu et al. (2025), Zhang et al. (2019), Wang et al. (2022)
                     </div>
                     """, unsafe_allow_html=True)
+
 
 # Sidebar - About
 with st.sidebar:
