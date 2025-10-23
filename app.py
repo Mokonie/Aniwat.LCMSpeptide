@@ -814,7 +814,6 @@ with tab3:
                     st.error(f"Error analyzing file: {str(e)}")
 
 # Tab 4: Molecular Docking Prediction
-# Tab 4: Molecular Docking Prediction
 with tab4:
     st.subheader("🧬 Molecular Docking Prediction")
     st.write("ทำนายการเกิด interaction ของ peptide กับ key residues ใน T1R1/T1R3 receptor pockets")
@@ -857,529 +856,343 @@ with tab4:
                     # Determine overall umami potential
                     umami_assessment = classify_umami_potential(t1r1_result, t1r3_result, props)
                     
+                    # Store in session_state for visualization buttons
+                    st.session_state.docking_sequence = sequence
+                    st.session_state.docking_props = props
+                    st.session_state.docking_t1r1 = t1r1_result
+                    st.session_state.docking_t1r3 = t1r3_result
+                    st.session_state.docking_assessment = umami_assessment
+                    
                     st.success(f"✅ วิเคราะห์เสร็จสมบูรณ์สำหรับ: **{sequence}**")
+    
+    # Display results (will persist across reruns via session_state)
+    if "docking_sequence" in st.session_state:
+        sequence = st.session_state.docking_sequence
+        props = st.session_state.docking_props
+        t1r1_result = st.session_state.docking_t1r1
+        t1r3_result = st.session_state.docking_t1r3
+        umami_assessment = st.session_state.docking_assessment
+        
+        # Display peptide properties
+        st.markdown("### 📊 คุณสมบัติของ Peptide")
                     
-                    # Display peptide properties
-                    st.markdown("### 📊 คุณสมบัติของ Peptide")
-                    
-                    col1, col2, col3 = st.columns(3)
-                    with col1:
-                        st.metric("ความยาว", f"{props['length']} aa")
-                        st.metric("Net Charge (pH 7)", f"{props['net_charge']:.2f}")
-                    with col2:
-                        st.metric("Molecular Weight", f"{props['mw']:.1f} Da")
-                        st.metric("Isoelectric Point", f"{props['pi']:.2f}")
-                    with col3:
-                        st.metric("Hydrophobicity (GRAVY)", f"{props['gravy']:.3f}")
-                        st.metric("กรดอะมิโน (D/E)", f"{props['acidic_pct']:.1f}%")
-                    
-                    # Display T1R1 interactions
-                    st.markdown("### 🔵 T1R1 Pocket Interactions")
-                    
-                    col1, col2 = st.columns([1, 1])
-                    with col1:
-                        st.markdown(f"""
-                        <div class="prediction-box umami-box">
-                            <h4>🎯 Binding Score</h4>
-                            <h2 style="color: #f59e0b;">{t1r1_result['score']:.1f}/100</h2>
-                            <p><strong>Estimated Binding Energy:</strong> {t1r1_result['binding_energy']:.2f} kcal/mol</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    with col2:
-                        st.markdown(f"""
-                        <div class="prediction-box" style="background-color: #f0f9ff; border-left: 4px solid #3b82f6;">
-                            <h4>🔗 Predicted Interactions</h4>
-                            <p><strong>Hydrogen Bonds:</strong> {t1r1_result['h_bonds']}</p>
-                            <p><strong>Electrostatic:</strong> {t1r1_result['electrostatic']}</p>
-                            <p><strong>Hydrophobic:</strong> {t1r1_result['hydrophobic']}</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    # Show key residue interactions for T1R1
-                    st.markdown("**Key Residues ที่คาดว่าจะเกิด Interaction:**")
-                    interactions_df = pd.DataFrame(t1r1_result['residue_interactions'])
-                    st.dataframe(interactions_df, use_container_width=True, hide_index=True)
-                    
-                    # Display T1R3 interactions
-                    st.markdown("### 🟢 T1R3 Pocket Interactions")
-                    
-                    col1, col2 = st.columns([1, 1])
-                    with col1:
-                        st.markdown(f"""
-                        <div class="prediction-box bitter-box">
-                            <h4>🎯 Binding Score</h4>
-                            <h2 style="color: #3b82f6;">{t1r3_result['score']:.1f}/100</h2>
-                            <p><strong>Estimated Binding Energy:</strong> {t1r3_result['binding_energy']:.2f} kcal/mol</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    with col2:
-                        st.markdown(f"""
-                        <div class="prediction-box" style="background-color: #f0fdf4; border-left: 4px solid #10b981;">
-                            <h4>🔗 Predicted Interactions</h4>
-                            <p><strong>Hydrogen Bonds:</strong> {t1r3_result['h_bonds']}</p>
-                            <p><strong>Electrostatic:</strong> {t1r3_result['electrostatic']}</p>
-                            <p><strong>Hydrophobic:</strong> {t1r3_result['hydrophobic']}</p>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    # Show key residue interactions for T1R3
-                    st.markdown("**Key Residues ที่คาดว่าจะเกิด Interaction:**")
-                    interactions_df = pd.DataFrame(t1r3_result['residue_interactions'])
-                    st.dataframe(interactions_df, use_container_width=True, hide_index=True)
-                    
-                    # Overall assessment
-                    st.markdown("### 🎖️ สรุปศักยภาพ Umami")
-                    
-                    # Determine color based on potential
-                    if umami_assessment['level'] == 'สูง':
-                        box_color = '#fef3c7'
-                        border_color = '#f59e0b'
-                        emoji = '🌟'
-                    elif umami_assessment['level'] == 'ปานกลาง':
-                        box_color = '#dbeafe'
-                        border_color = '#3b82f6'
-                        emoji = '⭐'
-                    elif umami_assessment['level'] == 'ต่ำ':
-                        box_color = '#f3f4f6'
-                        border_color = '#9ca3af'
-                        emoji = '🔸'
-                    else:
-                        box_color = '#fee2e2'
-                        border_color = '#ef4444'
-                        emoji = '❌'
-                    
-                    st.markdown(f"""
-                    <div class="prediction-box" style="background-color: {box_color}; border-left: 4px solid {border_color};">
-                        <h3>{emoji} ศักยภาพ Umami: {umami_assessment['level']}</h3>
-                        <p><strong>Overall Score:</strong> {umami_assessment['overall_score']:.1f}/100</p>
-                        <p><strong>Preferred Pocket:</strong> {umami_assessment['preferred_pocket']}</p>
-                        <p><strong>คำแนะนำ:</strong> {umami_assessment['recommendation']}</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Comparison with known umami peptides
-                    st.markdown("### 🔍 เปรียบเทียบกับ Umami Peptides ที่รู้จัก")
-                    
-                    known_peptides = [
-                        {'Peptide': 'DG (Asp-Gly)', 'T1R1 BE': -8.1, 'T1R3 BE': -7.3, 'Preference': 'T1R1'},
-                        {'Peptide': 'EK (Glu-Lys)', 'T1R1 BE': -7.1, 'T1R3 BE': -8.3, 'Preference': 'T1R3'},
-                        {'Peptide': 'EE (Glu-Glu)', 'T1R1 BE': -7.5, 'T1R3 BE': -7.8, 'Preference': 'T1R3'},
-                        {'Peptide': 'DD (Asp-Asp)', 'T1R1 BE': -7.6, 'T1R3 BE': -7.2, 'Preference': 'T1R1'},
-                        {'Peptide': f'{sequence} (ของคุณ)', 'T1R1 BE': t1r1_result['binding_energy'], 
-                         'T1R3 BE': t1r3_result['binding_energy'], 
-                         'Preference': umami_assessment['preferred_pocket']}
-                    ]
-                    
-                    comparison_df = pd.DataFrame(known_peptides)
-                    st.dataframe(comparison_df, use_container_width=True, hide_index=True)
-                    
-                    # Molecular Visualization Section
-                    st.markdown("### 🎨 Molecular Visualization")
-                    st.markdown("สร้างภาพโมเลกุล 2D และ 3D เพื่อแสดงโครงสร้างและ interactions")
-                    
-                    col1, col2, col3 = st.columns(3)
-                    
-                    with col1:
-                        if st.button("🖼️ สร้างภาพ 2D Structure", use_container_width=True, key="btn_2d"):
-                            st.info("🔄 Button clicked! Starting 2D visualization...")
-                            with st.spinner("กำลังสร้างภาพ 2D..."):
-                                try:
-                                    st.write(f"Debug: Sequence = {sequence}")
-                                    # Amino acid colors
-                                    aa_colors = {
-                                        'E': '#FF6B6B', 'D': '#FF6B6B',  # Acidic - red
-                                        'K': '#4ECDC4', 'R': '#4ECDC4', 'H': '#95E1D3',  # Basic - blue/cyan
-                                        'S': '#FFA07A', 'T': '#FFA07A', 'N': '#FFA07A', 'Q': '#FFA07A',  # Polar - orange
-                                        'G': '#E0E0E0', 'P': '#E0E0E0',  # Special - gray
-                                        'A': '#B8B8B8', 'V': '#B8B8B8', 'L': '#B8B8B8', 'I': '#B8B8B8', 'M': '#B8B8B8',  # Hydrophobic - dark gray
-                                        'F': '#FFD93D', 'Y': '#FFD93D', 'W': '#FFD93D',  # Aromatic - yellow
-                                        'C': '#F9ED69'  # Cysteine - light yellow
-                                    }
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("ความยาว", f"{props['length']} aa")
+            st.metric("Net Charge (pH 7)", f"{props['net_charge']:.2f}")
+        with col2:
+            if st.button("🔵 สร้างภาพ Interactions", use_container_width=True, key="btn_interact"):
+                with st.spinner("กำลังสร้างภาพ Interactions..."):
+                    try:
+                        # T1R1 key residues
+                        t1r1_residues = {
+                            'Y220': 'H-bond', 'E301': 'Electrostatic', 'L305': 'Hydrophobic',
+                            'S306': 'H-bond', 'S385': 'H-bond', 'N388': 'H-bond',
+                            'D147': 'Electrostatic', 'Y169': 'H-bond', 'L75': 'Hydrophobic', 'A302': 'H-bond'
+                        }
                                     
-                                    # Create figure
-                                    fig, ax = plt.subplots(figsize=(max(len(sequence) * 2, 10), 6))
-                                    ax.set_xlim(-1, len(sequence))
-                                    ax.set_ylim(-2, 2)
-                                    ax.axis('off')
+                        # T1R3 key residues
+                        t1r3_residues = {
+                            "S146'": 'H-bond', "S147'": 'H-bond', "E148'": 'Electrostatic',
+                            "T167'": 'H-bond', "G168'": 'Flexibility', "S170'": 'H-bond',
+                            "M171'": 'Hydrophobic', "D190'": 'Electrostatic', "N386'": 'H-bond',
+                            "Q389'": 'H-bond', "W72'": 'Hydrophobic', "H145'": 'H-bond'
+                        }
                                     
-                                    # Draw amino acids
-                                    for i, aa in enumerate(sequence):
-                                        color = aa_colors.get(aa, '#CCCCCC')
-                                        circle = Circle((i, 0), 0.4, color=color, ec='black', linewidth=2, zorder=5)
-                                        ax.add_patch(circle)
-                                        ax.text(i, 0, aa, ha='center', va='center', fontsize=14, fontweight='bold', zorder=6)
+                        # Function to generate interaction diagram
+                        def generate_interaction_diagram(peptide, receptor, residues, filename):
+                            fig, ax = plt.subplots(figsize=(14, 14))
+                            ax.set_xlim(-6, 6)
+                            ax.set_ylim(-6, 6)
+                            ax.axis('off')
                                         
-                                        # Add charge indicators
-                                        if aa in ['D', 'E']:
-                                            ax.text(i, -0.7, '(−)', ha='center', va='center', fontsize=10, color='red')
-                                        elif aa in ['K', 'R']:
-                                            ax.text(i, -0.7, '(+)', ha='center', va='center', fontsize=10, color='blue')
+                            # Draw peptide in center
+                            center_circle = Circle((0, 0), 0.8, color='#FFD93D', ec='black', linewidth=3, zorder=10)
+                            ax.add_patch(center_circle)
+                            ax.text(0, 0, peptide, ha='center', va='center', fontsize=18, fontweight='bold', zorder=11)
+                            ax.text(0, -1.3, 'Peptide', ha='center', va='center', fontsize=12, style='italic')
                                         
-                                        # Connect amino acids
-                                        if i < len(sequence) - 1:
-                                            ax.plot([i + 0.4, i + 0.6], [0, 0], 'k-', linewidth=2, zorder=1)
-                                    
-                                    # Add labels
-                                    ax.text(-0.5, 0, 'N', ha='center', va='center', fontsize=12, style='italic', color='blue')
-                                    ax.text(len(sequence) - 0.5, 0, 'C', ha='center', va='center', fontsize=12, style='italic', color='red')
-                                    ax.text(len(sequence) / 2 - 0.5, 1.5, f'Peptide: {sequence}', ha='center', va='center', 
-                                           fontsize=16, fontweight='bold')
-                                    
-                                    # Add legend
-                                    legend_elements = [
-                                        mpatches.Patch(color='#FF6B6B', label='Acidic (D, E)'),
-                                        mpatches.Patch(color='#4ECDC4', label='Basic (K, R, H)'),
-                                        mpatches.Patch(color='#FFA07A', label='Polar (S, T, N, Q)'),
-                                        mpatches.Patch(color='#FFD93D', label='Aromatic (F, Y, W)'),
-                                        mpatches.Patch(color='#E0E0E0', label='Special (G, P)'),
-                                        mpatches.Patch(color='#B8B8B8', label='Hydrophobic (A, V, L, I, M)')
-                                    ]
-                                    ax.legend(handles=legend_elements, loc='lower center', ncol=3, fontsize=9, 
-                                             frameon=True, fancybox=True, shadow=True, bbox_to_anchor=(0.5, -0.3))
-                                    
-                                    plt.tight_layout()
-                                    
-                                    # Save and display
-                                    with tempfile.NamedTemporaryFile(delete=False, suffix='_2d.png') as tmp:
-                                        plt.savefig(tmp.name, dpi=300, bbox_inches='tight')
-                                        plt.close()
-                                        st.image(tmp.name, caption=f"2D Structure - {sequence}")
+                            # Draw receptor residues around
+                            n_residues = len(residues)
+                            angle_step = 2 * np.pi / n_residues
+                            radius = 4.5
                                         
-                                        with open(tmp.name, 'rb') as f:
-                                            st.download_button(
-                                                label="📥 Download 2D Structure",
-                                                data=f.read(),
-                                                file_name=f"{sequence}_2d_structure.png",
-                                                mime="image/png",
-                                                key="download_2d"
-                                            )
-                                        os.unlink(tmp.name)
-                                    
-                                    st.success("✅ สร้างภาพ 2D เสร็จสมบูรณ์!")
-                                except Exception as e:
-                                    st.error(f"⚠️ เกิดข้อผิดพลาด: {str(e)}")
-                                    st.error(f"Error type: {type(e).__name__}")
-                                    import traceback
-                                    st.code(traceback.format_exc())
-                                    st.warning("👉 ถ้าเห็นข้อความนี้ กรุณาส่ง screenshot มาให้ด้วยครับ")
-                    
-                    with col2:
-                        if st.button("🔵 สร้างภาพ Interactions", use_container_width=True, key="btn_interact"):
-                            st.info("🔄 Button clicked! Starting Interactions visualization...")
-                            with st.spinner("กำลังสร้างภาพ Interactions..."):
-                                try:
-                                    st.write(f"Debug: Sequence = {sequence}")
-                                    # T1R1 key residues
-                                    t1r1_residues = {
-                                        'Y220': 'H-bond', 'E301': 'Electrostatic', 'L305': 'Hydrophobic',
-                                        'S306': 'H-bond', 'S385': 'H-bond', 'N388': 'H-bond',
-                                        'D147': 'Electrostatic', 'Y169': 'H-bond', 'L75': 'Hydrophobic', 'A302': 'H-bond'
-                                    }
-                                    
-                                    # T1R3 key residues
-                                    t1r3_residues = {
-                                        "S146'": 'H-bond', "S147'": 'H-bond', "E148'": 'Electrostatic',
-                                        "T167'": 'H-bond', "G168'": 'Flexibility', "S170'": 'H-bond',
-                                        "M171'": 'Hydrophobic', "D190'": 'Electrostatic', "N386'": 'H-bond',
-                                        "Q389'": 'H-bond', "W72'": 'Hydrophobic', "H145'": 'H-bond'
-                                    }
-                                    
-                                    # Function to generate interaction diagram
-                                    def generate_interaction_diagram(peptide, receptor, residues, filename):
-                                        fig, ax = plt.subplots(figsize=(14, 14))
-                                        ax.set_xlim(-6, 6)
-                                        ax.set_ylim(-6, 6)
-                                        ax.axis('off')
-                                        
-                                        # Draw peptide in center
-                                        center_circle = Circle((0, 0), 0.8, color='#FFD93D', ec='black', linewidth=3, zorder=10)
-                                        ax.add_patch(center_circle)
-                                        ax.text(0, 0, peptide, ha='center', va='center', fontsize=18, fontweight='bold', zorder=11)
-                                        ax.text(0, -1.3, 'Peptide', ha='center', va='center', fontsize=12, style='italic')
-                                        
-                                        # Draw receptor residues around
-                                        n_residues = len(residues)
-                                        angle_step = 2 * np.pi / n_residues
-                                        radius = 4.5
-                                        
-                                        for i, (residue, interaction_type) in enumerate(residues.items()):
-                                            angle = i * angle_step
-                                            x = radius * np.cos(angle)
-                                            y = radius * np.sin(angle)
+                            for i, (residue, interaction_type) in enumerate(residues.items()):
+                                angle = i * angle_step
+                                x = radius * np.cos(angle)
+                                y = radius * np.sin(angle)
                                             
-                                            # Color based on interaction type
-                                            if 'H-bond' in interaction_type:
-                                                color = '#4ECDC4'
-                                                linestyle = '--'
-                                                linecolor = '#4ECDC4'
-                                            elif 'Electrostatic' in interaction_type:
-                                                color = '#FF6B6B'
-                                                linestyle = '-'
-                                                linecolor = '#FF6B6B'
-                                            elif 'Hydrophobic' in interaction_type:
-                                                color = '#95E1D3'
-                                                linestyle = ':'
-                                                linecolor = '#95E1D3'
-                                            else:
-                                                color = '#E0E0E0'
-                                                linestyle = '-.'
-                                                linecolor = '#999999'
+                                # Color based on interaction type
+                                if 'H-bond' in interaction_type:
+                                    color = '#4ECDC4'
+                                    linestyle = '--'
+                                    linecolor = '#4ECDC4'
+                                elif 'Electrostatic' in interaction_type:
+                                    color = '#FF6B6B'
+                                    linestyle = '-'
+                                    linecolor = '#FF6B6B'
+                                elif 'Hydrophobic' in interaction_type:
+                                    color = '#95E1D3'
+                                    linestyle = ':'
+                                    linecolor = '#95E1D3'
+                                else:
+                                    color = '#E0E0E0'
+                                    linestyle = '-.'
+                                    linecolor = '#999999'
                                             
-                                            # Draw residue circle
-                                            res_circle = Circle((x, y), 0.5, color=color, ec='black', linewidth=2, zorder=5)
-                                            ax.add_patch(res_circle)
-                                            ax.text(x, y, residue, ha='center', va='center', fontsize=10, fontweight='bold', zorder=6)
+                                # Draw residue circle
+                                res_circle = Circle((x, y), 0.5, color=color, ec='black', linewidth=2, zorder=5)
+                                ax.add_patch(res_circle)
+                                ax.text(x, y, residue, ha='center', va='center', fontsize=10, fontweight='bold', zorder=6)
                                             
-                                            # Draw interaction line
-                                            ax.plot([0, x*0.85], [0, y*0.85], linestyle=linestyle, color=linecolor, linewidth=2, alpha=0.7, zorder=1)
+                                # Draw interaction line
+                                ax.plot([0, x*0.85], [0, y*0.85], linestyle=linestyle, color=linecolor, linewidth=2, alpha=0.7, zorder=1)
                                         
-                                        # Add title
-                                        ax.text(0, 5.7, f'{receptor} Pocket - {peptide} Interactions', 
-                                               ha='center', va='center', fontsize=18, fontweight='bold')
+                            # Add title
+                            ax.text(0, 5.7, f'{receptor} Pocket - {peptide} Interactions', 
+                                   ha='center', va='center', fontsize=18, fontweight='bold')
                                         
-                                        # Add legend
-                                        legend_elements = [
-                                            mpatches.Patch(color='#4ECDC4', label='H-bond (--)'),
-                                            mpatches.Patch(color='#FF6B6B', label='Electrostatic (—)'),
-                                            mpatches.Patch(color='#95E1D3', label='Hydrophobic (...)'),
-                                        ]
-                                        ax.legend(handles=legend_elements, loc='lower right', fontsize=11, frameon=True, fancybox=True, shadow=True)
+                            # Add legend
+                            legend_elements = [
+                                mpatches.Patch(color='#4ECDC4', label='H-bond (--)'),
+                                mpatches.Patch(color='#FF6B6B', label='Electrostatic (—)'),
+                                mpatches.Patch(color='#95E1D3', label='Hydrophobic (...)'),
+                            ]
+                            ax.legend(handles=legend_elements, loc='lower right', fontsize=11, frameon=True, fancybox=True, shadow=True)
                                         
-                                        plt.tight_layout()
-                                        plt.savefig(filename, dpi=300, bbox_inches='tight')
-                                        plt.close()
+                            plt.tight_layout()
+                            plt.savefig(filename, dpi=300, bbox_inches='tight')
+                            plt.close()
                                     
-                                    # Generate T1R1 interaction diagram
-                                    with tempfile.NamedTemporaryFile(delete=False, suffix='_t1r1.png') as tmp1:
-                                        generate_interaction_diagram(sequence, "T1R1", t1r1_residues, tmp1.name)
-                                        st.image(tmp1.name, caption=f"T1R1 Pocket Interactions - {sequence}")
+                        # Generate T1R1 interaction diagram
+                        with tempfile.NamedTemporaryFile(delete=False, suffix='_t1r1.png') as tmp1:
+                            generate_interaction_diagram(sequence, "T1R1", t1r1_residues, tmp1.name)
+                            st.image(tmp1.name, caption=f"T1R1 Pocket Interactions - {sequence}")
                                         
-                                        with open(tmp1.name, 'rb') as f:
-                                            st.download_button(
-                                                label="📥 Download T1R1 Interactions",
-                                                data=f.read(),
-                                                file_name=f"{sequence}_t1r1_interactions.png",
-                                                mime="image/png",
-                                                key="download_t1r1"
-                                            )
-                                        os.unlink(tmp1.name)
+                            with open(tmp1.name, 'rb') as f:
+                                st.download_button(
+                                    label="📥 Download T1R1 Interactions",
+                                    data=f.read(),
+                                    file_name=f"{sequence}_t1r1_interactions.png",
+                                    mime="image/png",
+                                    key="download_t1r1"
+                                )
+                            os.unlink(tmp1.name)
                                     
-                                    # Generate T1R3 interaction diagram
-                                    with tempfile.NamedTemporaryFile(delete=False, suffix='_t1r3.png') as tmp2:
-                                        generate_interaction_diagram(sequence, "T1R3", t1r3_residues, tmp2.name)
-                                        st.image(tmp2.name, caption=f"T1R3 Pocket Interactions - {sequence}")
+                        # Generate T1R3 interaction diagram
+                        with tempfile.NamedTemporaryFile(delete=False, suffix='_t1r3.png') as tmp2:
+                            generate_interaction_diagram(sequence, "T1R3", t1r3_residues, tmp2.name)
+                            st.image(tmp2.name, caption=f"T1R3 Pocket Interactions - {sequence}")
                                         
-                                        with open(tmp2.name, 'rb') as f:
-                                            st.download_button(
-                                                label="📥 Download T1R3 Interactions",
-                                                data=f.read(),
-                                                file_name=f"{sequence}_t1r3_interactions.png",
-                                                mime="image/png",
-                                                key="download_t1r3"
-                                            )
-                                        os.unlink(tmp2.name)
+                            with open(tmp2.name, 'rb') as f:
+                                st.download_button(
+                                    label="📥 Download T1R3 Interactions",
+                                    data=f.read(),
+                                    file_name=f"{sequence}_t1r3_interactions.png",
+                                    mime="image/png",
+                                    key="download_t1r3"
+                                )
+                            os.unlink(tmp2.name)
                                     
-                                    st.success("✅ สร้างภาพ Interactions เสร็จสมบูรณ์!")
-                                except Exception as e:
-                                    st.error(f"เกิดข้อผิดพลาด: {str(e)}")
-                                    import traceback
-                                    st.code(traceback.format_exc())
-                    
-                    with col3:
-                        if st.button("🌐 สร้างภาพ 3D Pocket", use_container_width=True, key="btn_3d"):
-                            with st.spinner("กำลังสร้างภาพ 3D..."):
-                                try:
-                                    from mpl_toolkits.mplot3d import Axes3D
+                        st.success("✅ สร้างภาพ Interactions เสร็จสมบูรณ์!")
+                    except Exception as e:
+                        st.error(f"เกิดข้อผิดพลาด: {str(e)}")
+                        import traceback
+                        st.code(traceback.format_exc())
+
+
+        with col3:
+            if st.button("🌐 สร้างภาพ 3D Pocket", use_container_width=True, key="btn_3d"):
+                with st.spinner("กำลังสร้างภาพ 3D..."):
+                    try:
+                        from mpl_toolkits.mplot3d import Axes3D
                                     
-                                    # T1R1 and T1R3 key residues
-                                    t1r1_residues = {
-                                        'Y220': 'H-bond', 'E301': 'Electrostatic', 'L305': 'Hydrophobic',
-                                        'S306': 'H-bond', 'S385': 'H-bond', 'N388': 'H-bond',
-                                        'D147': 'Electrostatic', 'Y169': 'H-bond', 'L75': 'Hydrophobic', 'A302': 'H-bond'
-                                    }
+                        # T1R1 and T1R3 key residues
+                        t1r1_residues = {
+                            'Y220': 'H-bond', 'E301': 'Electrostatic', 'L305': 'Hydrophobic',
+                            'S306': 'H-bond', 'S385': 'H-bond', 'N388': 'H-bond',
+                            'D147': 'Electrostatic', 'Y169': 'H-bond', 'L75': 'Hydrophobic', 'A302': 'H-bond'
+                        }
                                     
-                                    t1r3_residues = {
-                                        "S146'": 'H-bond', "S147'": 'H-bond', "E148'": 'Electrostatic',
-                                        "T167'": 'H-bond', "G168'": 'Flexibility', "S170'": 'H-bond',
-                                        "M171'": 'Hydrophobic', "D190'": 'Electrostatic', "N386'": 'H-bond',
-                                        "Q389'": 'H-bond', "W72'": 'Hydrophobic', "H145'": 'H-bond'
-                                    }
+                        t1r3_residues = {
+                            "S146'": 'H-bond', "S147'": 'H-bond', "E148'": 'Electrostatic',
+                            "T167'": 'H-bond', "G168'": 'Flexibility', "S170'": 'H-bond',
+                            "M171'": 'Hydrophobic', "D190'": 'Electrostatic', "N386'": 'H-bond',
+                            "Q389'": 'H-bond', "W72'": 'Hydrophobic', "H145'": 'H-bond'
+                        }
                                     
-                                    # Amino acid colors
-                                    aa_colors = {
-                                        'E': '#FF6B6B', 'D': '#FF6B6B', 'K': '#4ECDC4', 'R': '#4ECDC4',
-                                        'S': '#FFA07A', 'T': '#FFA07A', 'G': '#E0E0E0', 'A': '#B8B8B8',
-                                        'L': '#B8B8B8', 'V': '#B8B8B8', 'I': '#B8B8B8', 'M': '#B8B8B8',
-                                        'F': '#FFD93D', 'Y': '#FFD93D', 'W': '#FFD93D', 'P': '#E0E0E0',
-                                        'N': '#FFA07A', 'Q': '#FFA07A', 'H': '#95E1D3', 'C': '#F9ED69'
-                                    }
+                        # Amino acid colors
+                        aa_colors = {
+                            'E': '#FF6B6B', 'D': '#FF6B6B', 'K': '#4ECDC4', 'R': '#4ECDC4',
+                            'S': '#FFA07A', 'T': '#FFA07A', 'G': '#E0E0E0', 'A': '#B8B8B8',
+                            'L': '#B8B8B8', 'V': '#B8B8B8', 'I': '#B8B8B8', 'M': '#B8B8B8',
+                            'F': '#FFD93D', 'Y': '#FFD93D', 'W': '#FFD93D', 'P': '#E0E0E0',
+                            'N': '#FFA07A', 'Q': '#FFA07A', 'H': '#95E1D3', 'C': '#F9ED69'
+                        }
                                     
-                                    # Function to generate 3D pocket visualization
-                                    def generate_3d_pocket(peptide, receptor, residues, pocket_size, filename):
-                                        fig = plt.figure(figsize=(14, 12))
-                                        ax = fig.add_subplot(111, projection='3d')
+                        # Function to generate 3D pocket visualization
+                        def generate_3d_pocket(peptide, receptor, residues, pocket_size, filename):
+                            fig = plt.figure(figsize=(14, 12))
+                            ax = fig.add_subplot(111, projection='3d')
                                         
-                                        # Draw peptide in center
-                                        for i, aa in enumerate(peptide):
-                                            x = (i - len(peptide)/2) * 0.5
-                                            color = aa_colors.get(aa, '#CCCCCC')
-                                            ax.scatter([x], [0], [0], c=[color], s=800, edgecolors='black', linewidths=2, alpha=0.9, zorder=10)
-                                            ax.text(x, 0, 0, aa, ha='center', va='center', fontsize=12, fontweight='bold', zorder=11)
+                            # Draw peptide in center
+                            for i, aa in enumerate(peptide):
+                                x = (i - len(peptide)/2) * 0.5
+                                color = aa_colors.get(aa, '#CCCCCC')
+                                ax.scatter([x], [0], [0], c=[color], s=800, edgecolors='black', linewidths=2, alpha=0.9, zorder=10)
+                                ax.text(x, 0, 0, aa, ha='center', va='center', fontsize=12, fontweight='bold', zorder=11)
                                         
-                                        # Draw receptor residues around
-                                        n_residues = len(residues)
-                                        for i, (residue, interaction_type) in enumerate(residues.items()):
-                                            theta = 2 * np.pi * i / n_residues
-                                            phi = np.pi / 3 + (i % 3) * np.pi / 6
-                                            r = 3.5
+                            # Draw receptor residues around
+                            n_residues = len(residues)
+                            for i, (residue, interaction_type) in enumerate(residues.items()):
+                                theta = 2 * np.pi * i / n_residues
+                                phi = np.pi / 3 + (i % 3) * np.pi / 6
+                                r = 3.5
                                             
-                                            x = r * np.sin(phi) * np.cos(theta)
-                                            y = r * np.sin(phi) * np.sin(theta)
-                                            z = r * np.cos(phi)
+                                x = r * np.sin(phi) * np.cos(theta)
+                                y = r * np.sin(phi) * np.sin(theta)
+                                z = r * np.cos(phi)
                                             
-                                            # Color and marker based on interaction type
-                                            if 'H-bond' in interaction_type:
-                                                color = '#4ECDC4'
-                                                marker = 'o'
-                                            elif 'Electrostatic' in interaction_type:
-                                                color = '#FF6B6B'
-                                                marker = 's'
-                                            elif 'Hydrophobic' in interaction_type:
-                                                color = '#95E1D3'
-                                                marker = '^'
-                                            else:
-                                                color = '#E0E0E0'
-                                                marker = 'o'
+                                # Color and marker based on interaction type
+                                if 'H-bond' in interaction_type:
+                                    color = '#4ECDC4'
+                                    marker = 'o'
+                                elif 'Electrostatic' in interaction_type:
+                                    color = '#FF6B6B'
+                                    marker = 's'
+                                elif 'Hydrophobic' in interaction_type:
+                                    color = '#95E1D3'
+                                    marker = '^'
+                                else:
+                                    color = '#E0E0E0'
+                                    marker = 'o'
                                             
-                                            ax.scatter([x], [y], [z], c=[color], s=400, marker=marker, edgecolors='black', linewidths=1.5, alpha=0.8, zorder=5)
-                                            ax.text(x, y, z, residue, ha='center', va='center', fontsize=8, zorder=6)
+                                ax.scatter([x], [y], [z], c=[color], s=400, marker=marker, edgecolors='black', linewidths=1.5, alpha=0.8, zorder=5)
+                                ax.text(x, y, z, residue, ha='center', va='center', fontsize=8, zorder=6)
                                             
-                                            # Draw line to peptide
-                                            ax.plot([0, x*0.7], [0, y*0.7], [0, z*0.7], color=color, linewidth=1, alpha=0.4, zorder=1)
+                                # Draw line to peptide
+                                ax.plot([0, x*0.7], [0, y*0.7], [0, z*0.7], color=color, linewidth=1, alpha=0.4, zorder=1)
                                         
-                                        # Draw pocket boundary (sphere)
-                                        u = np.linspace(0, 2 * np.pi, 30)
-                                        v = np.linspace(0, np.pi, 20)
-                                        x_sphere = 4 * np.outer(np.cos(u), np.sin(v))
-                                        y_sphere = 4 * np.outer(np.sin(u), np.sin(v))
-                                        z_sphere = 4 * np.outer(np.ones(np.size(u)), np.cos(v))
-                                        ax.plot_surface(x_sphere, y_sphere, z_sphere, color='lightblue', alpha=0.1, zorder=0)
+                            # Draw pocket boundary (sphere)
+                            u = np.linspace(0, 2 * np.pi, 30)
+                            v = np.linspace(0, np.pi, 20)
+                            x_sphere = 4 * np.outer(np.cos(u), np.sin(v))
+                            y_sphere = 4 * np.outer(np.sin(u), np.sin(v))
+                            z_sphere = 4 * np.outer(np.ones(np.size(u)), np.cos(v))
+                            ax.plot_surface(x_sphere, y_sphere, z_sphere, color='lightblue', alpha=0.1, zorder=0)
                                         
-                                        # Labels and title
-                                        ax.set_xlabel('X', fontsize=12)
-                                        ax.set_ylabel('Y', fontsize=12)
-                                        ax.set_zlabel('Z', fontsize=12)
-                                        ax.set_title(f'{receptor} Pocket - {peptide} (3D View)\nPocket Size: ~{pocket_size} Å³', 
-                                                    fontsize=16, fontweight='bold', pad=20)
+                            # Labels and title
+                            ax.set_xlabel('X', fontsize=12)
+                            ax.set_ylabel('Y', fontsize=12)
+                            ax.set_zlabel('Z', fontsize=12)
+                            ax.set_title(f'{receptor} Pocket - {peptide} (3D View)\nPocket Size: ~{pocket_size} Å³', 
+                                        fontsize=16, fontweight='bold', pad=20)
                                         
-                                        # Set viewing angle
-                                        ax.view_init(elev=20, azim=45)
+                            # Set viewing angle
+                            ax.view_init(elev=20, azim=45)
                                         
-                                        plt.tight_layout()
-                                        plt.savefig(filename, dpi=300, bbox_inches='tight')
-                                        plt.close()
+                            plt.tight_layout()
+                            plt.savefig(filename, dpi=300, bbox_inches='tight')
+                            plt.close()
                                     
-                                    # Function to generate cross-section
-                                    def generate_cross_section(peptide, receptor, pocket_size, filename):
-                                        fig, ax = plt.subplots(figsize=(12, 10))
-                                        ax.set_xlim(-6, 6)
-                                        ax.set_ylim(-6, 6)
-                                        ax.set_aspect('equal')
-                                        ax.axis('off')
+                        # Function to generate cross-section
+                        def generate_cross_section(peptide, receptor, pocket_size, filename):
+                            fig, ax = plt.subplots(figsize=(12, 10))
+                            ax.set_xlim(-6, 6)
+                            ax.set_ylim(-6, 6)
+                            ax.set_aspect('equal')
+                            ax.axis('off')
                                         
-                                        # Draw pocket (circle)
-                                        if receptor == "T1R1":
-                                            pocket_radius = 3.5
-                                            pocket_color = '#FFF4E6'
-                                        else:
-                                            pocket_radius = 5.0
-                                            pocket_color = '#E6F7FF'
+                            # Draw pocket (circle)
+                            if receptor == "T1R1":
+                                pocket_radius = 3.5
+                                pocket_color = '#FFF4E6'
+                            else:
+                                pocket_radius = 5.0
+                                pocket_color = '#E6F7FF'
                                         
-                                        pocket_circle = Circle((0, 0), pocket_radius, color=pocket_color, ec='black', linewidth=3, alpha=0.7, zorder=1)
-                                        ax.add_patch(pocket_circle)
+                            pocket_circle = Circle((0, 0), pocket_radius, color=pocket_color, ec='black', linewidth=3, alpha=0.7, zorder=1)
+                            ax.add_patch(pocket_circle)
                                         
-                                        # Draw peptide in center
-                                        peptide_width = len(peptide) * 0.4
-                                        peptide_rect = FancyBboxPatch((-peptide_width/2, -0.3), peptide_width, 0.6,
-                                                                     boxstyle="round,pad=0.1", 
-                                                                     facecolor='#FFD93D', edgecolor='black', linewidth=2, zorder=5)
-                                        ax.add_patch(peptide_rect)
-                                        ax.text(0, 0, peptide, ha='center', va='center', fontsize=16, fontweight='bold', zorder=6)
+                            # Draw peptide in center
+                            peptide_width = len(peptide) * 0.4
+                            peptide_rect = FancyBboxPatch((-peptide_width/2, -0.3), peptide_width, 0.6,
+                                                         boxstyle="round,pad=0.1", 
+                                                         facecolor='#FFD93D', edgecolor='black', linewidth=2, zorder=5)
+                            ax.add_patch(peptide_rect)
+                            ax.text(0, 0, peptide, ha='center', va='center', fontsize=16, fontweight='bold', zorder=6)
                                         
-                                        # Add labels
-                                        ax.text(0, pocket_radius + 0.8, f'{receptor} Pocket', ha='center', va='center', 
-                                               fontsize=18, fontweight='bold')
-                                        ax.text(0, -pocket_radius - 0.8, f'Size: ~{pocket_size} Å³', ha='center', va='center', 
-                                               fontsize=14, style='italic')
+                            # Add labels
+                            ax.text(0, pocket_radius + 0.8, f'{receptor} Pocket', ha='center', va='center', 
+                                   fontsize=18, fontweight='bold')
+                            ax.text(0, -pocket_radius - 0.8, f'Size: ~{pocket_size} Å³', ha='center', va='center', 
+                                   fontsize=14, style='italic')
                                         
-                                        # Add preference text
-                                        if receptor == "T1R1":
-                                            pref_text = "Prefers smaller peptides (2-4 aa)"
-                                        else:
-                                            pref_text = "Prefers larger peptides (5-10 aa)"
-                                        ax.text(0, pocket_radius + 1.8, pref_text, ha='center', va='center', 
-                                               fontsize=12, style='italic', color='#666666')
+                            # Add preference text
+                            if receptor == "T1R1":
+                                pref_text = "Prefers smaller peptides (2-4 aa)"
+                            else:
+                                pref_text = "Prefers larger peptides (5-10 aa)"
+                            ax.text(0, pocket_radius + 1.8, pref_text, ha='center', va='center', 
+                                   fontsize=12, style='italic', color='#666666')
                                         
-                                        plt.tight_layout()
-                                        plt.savefig(filename, dpi=300, bbox_inches='tight')
-                                        plt.close()
+                            plt.tight_layout()
+                            plt.savefig(filename, dpi=300, bbox_inches='tight')
+                            plt.close()
                                     
-                                    # Generate 3D visualizations for T1R1
-                                    with tempfile.NamedTemporaryFile(delete=False, suffix='_t1r1_3d.png') as tmp1:
-                                        generate_3d_pocket(sequence, "T1R1", t1r1_residues, 1070, tmp1.name)
-                                        st.image(tmp1.name, caption=f"T1R1 Pocket 3D - {sequence}")
+                        # Generate 3D visualizations for T1R1
+                        with tempfile.NamedTemporaryFile(delete=False, suffix='_t1r1_3d.png') as tmp1:
+                            generate_3d_pocket(sequence, "T1R1", t1r1_residues, 1070, tmp1.name)
+                            st.image(tmp1.name, caption=f"T1R1 Pocket 3D - {sequence}")
                                         
-                                        with open(tmp1.name, 'rb') as f:
-                                            st.download_button(
-                                                label="📥 Download T1R1 3D",
-                                                data=f.read(),
-                                                file_name=f"{sequence}_t1r1_3d.png",
-                                                mime="image/png",
-                                                key="download_t1r1_3d"
-                                            )
-                                        os.unlink(tmp1.name)
+                            with open(tmp1.name, 'rb') as f:
+                                st.download_button(
+                                    label="📥 Download T1R1 3D",
+                                    data=f.read(),
+                                    file_name=f"{sequence}_t1r1_3d.png",
+                                    mime="image/png",
+                                    key="download_t1r1_3d"
+                                )
+                            os.unlink(tmp1.name)
                                     
-                                    # Generate 3D visualizations for T1R3
-                                    with tempfile.NamedTemporaryFile(delete=False, suffix='_t1r3_3d.png') as tmp2:
-                                        generate_3d_pocket(sequence, "T1R3", t1r3_residues, 2374, tmp2.name)
-                                        st.image(tmp2.name, caption=f"T1R3 Pocket 3D - {sequence}")
+                        # Generate 3D visualizations for T1R3
+                        with tempfile.NamedTemporaryFile(delete=False, suffix='_t1r3_3d.png') as tmp2:
+                            generate_3d_pocket(sequence, "T1R3", t1r3_residues, 2374, tmp2.name)
+                            st.image(tmp2.name, caption=f"T1R3 Pocket 3D - {sequence}")
                                         
-                                        with open(tmp2.name, 'rb') as f:
-                                            st.download_button(
-                                                label="📥 Download T1R3 3D",
-                                                data=f.read(),
-                                                file_name=f"{sequence}_t1r3_3d.png",
-                                                mime="image/png",
-                                                key="download_t1r3_3d"
-                                            )
-                                        os.unlink(tmp2.name)
+                            with open(tmp2.name, 'rb') as f:
+                                st.download_button(
+                                    label="📥 Download T1R3 3D",
+                                    data=f.read(),
+                                    file_name=f"{sequence}_t1r3_3d.png",
+                                    mime="image/png",
+                                    key="download_t1r3_3d"
+                                )
+                            os.unlink(tmp2.name)
                                     
-                                    # Generate cross-sections
-                                    with tempfile.NamedTemporaryFile(delete=False, suffix='_t1r1_cross.png') as tmp3:
-                                        generate_cross_section(sequence, "T1R1", 1070, tmp3.name)
-                                        st.image(tmp3.name, caption=f"T1R1 Cross-Section - {sequence}")
-                                        os.unlink(tmp3.name)
+                        # Generate cross-sections
+                        with tempfile.NamedTemporaryFile(delete=False, suffix='_t1r1_cross.png') as tmp3:
+                            generate_cross_section(sequence, "T1R1", 1070, tmp3.name)
+                            st.image(tmp3.name, caption=f"T1R1 Cross-Section - {sequence}")
+                            os.unlink(tmp3.name)
                                     
-                                    with tempfile.NamedTemporaryFile(delete=False, suffix='_t1r3_cross.png') as tmp4:
-                                        generate_cross_section(sequence, "T1R3", 2374, tmp4.name)
-                                        st.image(tmp4.name, caption=f"T1R3 Cross-Section - {sequence}")
-                                        os.unlink(tmp4.name)
+                        with tempfile.NamedTemporaryFile(delete=False, suffix='_t1r3_cross.png') as tmp4:
+                            generate_cross_section(sequence, "T1R3", 2374, tmp4.name)
+                            st.image(tmp4.name, caption=f"T1R3 Cross-Section - {sequence}")
+                            os.unlink(tmp4.name)
                                     
-                                    st.success("✅ สร้างภาพ 3D เสร็จสมบูรณ์!")
-                                except Exception as e:
-                                    st.error(f"เกิดข้อผิดพลาด: {str(e)}")
-                                    import traceback
-                                    st.code(traceback.format_exc())
-                    
-                    # Footnote
-                    st.markdown("---")
-                    st.markdown("""
-                    <div class="info-box" style="background-color: #f0f9ff; border-left: 4px solid #3b82f6;">
-                        <strong>📚 คำอธิบาย:</strong><br>
-                        • <strong>Binding Score:</strong> คะแนนการจับ (0-100) ยิ่งสูงยิ่งดี<br>
-                        • <strong>Binding Energy:</strong> พลังงานการจับ (kcal/mol) ยิ่งติดลบมากยิ่งจับแรง<br>
+                        st.success("✅ สร้างภาพ 3D เสร็จสมบูรณ์!")
+                    except Exception as e:
+                        st.error(f"เกิดข้อผิดพลาด: {str(e)}")
+                        import traceback
+                        st.code(traceback.format_exc())
+
+
+        # Footnote
+        st.markdown("""
+                    <div class="footnote">
+                        <strong>📝 หมายเหตุ:</strong><br>
+                        • <strong>Binding Energy (BE):</strong> พลังงานการจับที่ประมาณการ (ยิ่งต่ำ = จับแรงขึ้น)<br>
                         • <strong>Key Residues:</strong> กรดอะมิโนสำคัญใน receptor pocket ที่เกี่ยวข้องกับการจับ peptide<br>
                         • <strong>Interaction Types:</strong><br>
                         &nbsp;&nbsp;- H-bond: พันธะไฮโดรเจน (สำคัญที่สุด)<br>
@@ -1388,7 +1201,6 @@ with tab4:
                         • ข้อมูลอ้างอิงจาก: Hu et al. (2025), Zhang et al. (2019), Wang et al. (2022)
                     </div>
                     """, unsafe_allow_html=True)
-
 
 # Sidebar - About
 with st.sidebar:
