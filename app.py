@@ -983,8 +983,10 @@ with tab4:
                     
                     with col1:
                         if st.button("🖼️ สร้างภาพ 2D Structure", use_container_width=True, key="btn_2d"):
+                            st.info("🔄 Button clicked! Starting 2D visualization...")
                             with st.spinner("กำลังสร้างภาพ 2D..."):
                                 try:
+                                    st.write(f"Debug: Sequence = {sequence}")
                                     # Amino acid colors
                                     aa_colors = {
                                         'E': '#FF6B6B', 'D': '#FF6B6B',  # Acidic - red
@@ -1057,14 +1059,18 @@ with tab4:
                                     
                                     st.success("✅ สร้างภาพ 2D เสร็จสมบูรณ์!")
                                 except Exception as e:
-                                    st.error(f"เกิดข้อผิดพลาด: {str(e)}")
+                                    st.error(f"⚠️ เกิดข้อผิดพลาด: {str(e)}")
+                                    st.error(f"Error type: {type(e).__name__}")
                                     import traceback
                                     st.code(traceback.format_exc())
+                                    st.warning("👉 ถ้าเห็นข้อความนี้ กรุณาส่ง screenshot มาให้ด้วยครับ")
                     
                     with col2:
                         if st.button("🔵 สร้างภาพ Interactions", use_container_width=True, key="btn_interact"):
+                            st.info("🔄 Button clicked! Starting Interactions visualization...")
                             with st.spinner("กำลังสร้างภาพ Interactions..."):
                                 try:
+                                    st.write(f"Debug: Sequence = {sequence}")
                                     # T1R1 key residues
                                     t1r1_residues = {
                                         'Y220': 'H-bond', 'E301': 'Electrostatic', 'L305': 'Hydrophobic',
